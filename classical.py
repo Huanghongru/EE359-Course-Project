@@ -7,6 +7,7 @@ from sklearn.svm import LinearSVC, SVC
 from sklearn.model_selection import cross_val_score
 from sklearn.externals import joblib
 import time
+import argparse
 from utils import *
 
 def load_data(dir=DATA_PATH):
@@ -71,26 +72,49 @@ def LinearSVM(data, labels,
     return np.average(scores)
 
 if __name__ == "__main__":
+    parser = argparse.ArgumentParser()
+    parser.add_argument("mode")
+    args = parser.parse_args()
+
     data, labels = load_data()
 
     ''' PCA '''
-    # for para in N_COMPONENTS:
-    #     doPCA(data, para)
+    if args.mode == 'PCA':
+        for para in N_COMPONENTS:
+            doPCA(data, para)
 
     ''' LR '''
-    acc = LR(data, labels)
-    print("LR on original data, acc:", acc)
-    for para in N_COMPONENTS:
-        name = "n_components=" + str("default" if para==0 else para)
-        data = np.load(PCA_DATA_PATH + name+'.npy')
-        acc = LR(data, labels)
-        print("LR on PCA({}) data, acc:".format(name), acc)
+    if args.mode == 'LR':
+        # acc = LR(data, labels)
+        # print("LR on original data, acc:", acc)
+        # for para in N_COMPONENTS:
+        #     name = "n_components=" + str("default" if para==0 else para)
+        #     data = np.load(PCA_DATA_PATH + name+'.npy')
+        #     acc = LR(data, labels)
+        #     print("LR on PCA({}) data, acc:".format(name), acc)
+        with open(LR_RES_PATH+"LR_result.txt", 'w') as f:
+            for c in C:
+                acc = LR(data, labels, regularization_coef=c)
+                f.write("original data, c={}: {}".format(c, acc))
+            for c in C:
+                for para in N_COMPONENTS:
+                    name = "n_components=" + str("default" if para == 0 else para)
+                    data = np.load(PCA_DATA_PATH + name + '.npy')
+                    acc = LR(data, labels, regularization_coef=c)
+                    f.write("{}, c={}: {}".format(name, c, acc))
+        # name = "n_components=0.85"
+        # data = np.load(PCA_DATA_PATH + name + '.npy')
+        # print("Based on PCA({}).".format(name))
+        # for c in C:
+        #     acc = LR(data, labels)
+        #     print("LR with c={}, acc:".format(c), acc)
 
     ''' SVM '''
-    acc = LinearSVM(data, labels)
-    print("Linear SVM on original data, acc:", acc)
-    for para in N_COMPONENTS:
-        name = "n_components=" + str("default" if para == 0 else para)
-        data = np.load(PCA_DATA_PATH + name + '.npy')
+    if args.mode == 'LSVM':
         acc = LinearSVM(data, labels)
-        print("Linear SVM on PCA({}) data, acc:".format(name), acc)
+        print("Linear SVM on original data, acc:", acc)
+        for para in N_COMPONENTS:
+            name = "n_components=" + str("default" if para == 0 else para)
+            data = np.load(PCA_DATA_PATH + name + '.npy')
+            acc = LinearSVM(data, labels)
+            print("Linear SVM on PCA({}) data, acc:".format(name), acc)

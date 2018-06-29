@@ -64,7 +64,7 @@ def LinearSVM(data, labels,
     if data.shape[0] > data.shape[1]:
         clf = LinearSVC(penalty=penalty, C=penalty_coef, max_iter=max_iter, dual=False, verbose=verbose)
     else:
-        clf = LinearSVC(penalty=penalty, C=penalty_coef, max_iter=max_iter, dual=True, verbose=verbose)
+        clf = LinearSVC(penalty='l2', C=penalty_coef, max_iter=max_iter, dual=True, verbose=verbose)
     scores = cross_val_score(clf, data, labels, cv=5)
     print("Linear SVM time cost:",time.time()-start)
     print("CV scores:",scores)

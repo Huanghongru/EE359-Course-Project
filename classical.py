@@ -95,12 +95,14 @@ if __name__ == "__main__":
         with open(LR_RES_PATH+"LR_result.txt", 'w') as f:
             for c in C:
                 acc = LR(data, labels, regularization_coef=c)
+                print("original data, c={}: {}".format(c, acc))
                 f.write("original data, c={}: {}".format(c, acc))
             for c in C:
                 for para in N_COMPONENTS:
                     name = "n_components=" + str("default" if para == 0 else para)
                     data = np.load(PCA_DATA_PATH + name + '.npy')
                     acc = LR(data, labels, regularization_coef=c)
+                    print("{}, c={}: {}".format(name, c, acc))
                     f.write("{}, c={}: {}".format(name, c, acc))
         # name = "n_components=0.85"
         # data = np.load(PCA_DATA_PATH + name + '.npy')
@@ -111,10 +113,22 @@ if __name__ == "__main__":
 
     ''' SVM '''
     if args.mode == 'LSVM':
-        acc = LinearSVM(data, labels)
-        print("Linear SVM on original data, acc:", acc)
-        for para in N_COMPONENTS:
-            name = "n_components=" + str("default" if para == 0 else para)
-            data = np.load(PCA_DATA_PATH + name + '.npy')
-            acc = LinearSVM(data, labels)
-            print("Linear SVM on PCA({}) data, acc:".format(name), acc)
+        # acc = LinearSVM(data, labels)
+        # print("Linear SVM on original data, acc:", acc)
+        # for para in N_COMPONENTS:
+        #     name = "n_components=" + str("default" if para == 0 else para)
+        #     data = np.load(PCA_DATA_PATH + name + '.npy')
+        #     acc = LinearSVM(data, labels)
+        #     print("Linear SVM on PCA({}) data, acc:".format(name), acc)
+        with open(LSVM_RES_PATH+"LSVM_result.txt", 'w') as f:
+            for c in C:
+                acc = LinearSVM(data, labels, penalty_coef=c)
+                print("original data, c={}: {}".format(c, acc))
+                f.write("original data, c={}: {}".format(c, acc))
+            for c in C:
+                for para in N_COMPONENTS:
+                    name = "n_components=" + str("default" if para == 0 else para)
+                    data = np.load(PCA_DATA_PATH + name + '.npy')
+                    acc = LinearSVM(data, labels, penalty_coef=c)
+                    print("{}, c={}: {}".format(name, c, acc))
+                    f.write("{}, c={}: {}".format(name, c, acc))

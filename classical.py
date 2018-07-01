@@ -71,6 +71,21 @@ def LinearSVM(data, labels,
     print("CV scores:",scores)
     return np.average(scores)
 
+def SVM(data, lebels,
+        penalty_coef = 1.,
+        kernel = 'rbf',
+        verbose = 1):
+    start = time.time()
+    print("Starting SVM with kernel={}.".format(kernel))
+    if kernel == 'rbf' or kernel == 'sigmoid':
+        clf = SVC(kernel=kernel, C=penalty_coef, shrinking=False, verbose=verbose)
+    else:
+        clf = SVC(kernel=kernel, C=penalty_coef, verbose=verbose)
+    scores = cross_val_score(clf, data, labels, cv=5)
+    print("Kernel SVM time cost:", time.time() - start)
+    print("CV scores:", scores)
+    return np.average(scores)
+
 if __name__ == "__main__":
     parser = argparse.ArgumentParser()
     parser.add_argument("mode")
@@ -85,50 +100,49 @@ if __name__ == "__main__":
 
     ''' LR '''
     if args.mode == 'LR':
-        # acc = LR(data, labels)
-        # print("LR on original data, acc:", acc)
-        # for para in N_COMPONENTS:
-        #     name = "n_components=" + str("default" if para==0 else para)
-        #     data = np.load(PCA_DATA_PATH + name+'.npy')
-        #     acc = LR(data, labels)
-        #     print("LR on PCA({}) data, acc:".format(name), acc)
         with open(LR_RES_PATH+"LR_result.txt", 'w') as f:
             for c in C:
                 acc = LR(data, labels, regularization_coef=c)
                 print("original data, c={}: {}".format(c, acc))
-                f.write("original data, c={}: {}".format(c, acc))
+                f.write("original data, c={}: {}\n".format(c, acc))
             for c in C:
                 for para in N_COMPONENTS:
                     name = "n_components=" + str("default" if para == 0 else para)
                     data = np.load(PCA_DATA_PATH + name + '.npy')
                     acc = LR(data, labels, regularization_coef=c)
                     print("{}, c={}: {}".format(name, c, acc))
-                    f.write("{}, c={}: {}".format(name, c, acc))
-        # name = "n_components=0.85"
-        # data = np.load(PCA_DATA_PATH + name + '.npy')
-        # print("Based on PCA({}).".format(name))
-        # for c in C:
-        #     acc = LR(data, labels)
-        #     print("LR with c={}, acc:".format(c), acc)
+                    f.write("{}, c={}: {}\n".format(name, c, acc))
 
-    ''' SVM '''
+    ''' LSVM '''
     if args.mode == 'LSVM':
-        # acc = LinearSVM(data, labels)
-        # print("Linear SVM on original data, acc:", acc)
-        # for para in N_COMPONENTS:
-        #     name = "n_components=" + str("default" if para == 0 else para)
-        #     data = np.load(PCA_DATA_PATH + name + '.npy')
-        #     acc = LinearSVM(data, labels)
-        #     print("Linear SVM on PCA({}) data, acc:".format(name), acc)
         with open(LSVM_RES_PATH+"LSVM_result.txt", 'w') as f:
             for c in C:
                 acc = LinearSVM(data, labels, penalty_coef=c)
                 print("original data, c={}: {}".format(c, acc))
-                f.write("original data, c={}: {}".format(c, acc))
+                f.write("original data, c={}: {}\n".format(c, acc))
             for c in C:
                 for para in N_COMPONENTS:
                     name = "n_components=" + str("default" if para == 0 else para)
                     data = np.load(PCA_DATA_PATH + name + '.npy')
                     acc = LinearSVM(data, labels, penalty_coef=c)
                     print("{}, c={}: {}".format(name, c, acc))
-                    f.write("{}, c={}: {}".format(name, c, acc))
+                    f.write("{}, c={}: {}\n".format(name, c, acc))
+
+    ''' SVM '''
+    if args.mode == 'SVM':
+        with open(SVM_RES_PATH+"SVM_result1.txt", 'w') as f:
+            # for kernel in KERNEL:
+            #     for c in C:
+            #         acc = SVM(data, labels, kernel=kernel, penalty_coef=c)
+            #         print("original data, kernel={}, c={}: {}".format(kernel, c, acc))
+            #         f.write("original data, kernel={}, c={}: {}\n".format(kernel, c, acc))
+            for kernel in KERNEL:
+                # for c in C:
+                #     for para in N_COMPONENTS:
+                #         name = "n_components=" + str("default" if para == 0 else para)
+                for c in [0.001, 1., 1000.]:
+                    name = "n_components=0.8"
+                    data = np.load(PCA_DATA_PATH + name + '.npy')
+                    acc = SVM(data, labels, kernel=kernel, penalty_coef=c, verbose=False)
+                    print("{}, kernel={}, c={}: {}".format(name, kernel, c, acc))
+                    f.write("{}, kernel={}, c={}: {}\n".format(name, kernel, c, acc))

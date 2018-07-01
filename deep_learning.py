@@ -1,7 +1,7 @@
 import os
 import keras
 import numpy as np
-from keras import layers
+from sklearn import decomposition
 from utils import *
 
 # ========================== fine tunning ==============================
@@ -14,6 +14,7 @@ from utils import *
 #  SGD              0.001        128        128       0.412       0.769
 #  SGD             0.0001        128        128       0.362       0.819
 # AdaGrad           0.01         128        128       7.312       0.547
+# RMSprop           0.001         30         32        1.92       0.873  [Diemsion Reduction + 1 more layer]
 # ======================================================================
 
 def load_data(dir=DATA_PATH):
@@ -22,12 +23,23 @@ def load_data(dir=DATA_PATH):
     print("Successfully load data and labels.")
     return data, label
 
+# Load data....
 data, label = load_data()
 label_ = keras.utils.to_categorical(label)
+
+# Dimension Reduction
+pca = decomposition.PCA(n_components=100)
+pca.fit(data)
+data = pca.transform(data)
+print(data.shape)
 N = int(len(data)*0.8)
-train_X = data[:N]
+print("Dimension Reduction complete")
+
+train_X = keras.utils.normalize(data[:N])
+test_X = keras.utils.normalize(data[N:])
+# train_X = data[:N]
+# test_X = data[N:]
 train_Y = label_[:N]
-test_X = data[N:]
 test_Y = label_[N:]
 
 data_num, features =  data.shape
@@ -35,18 +47,20 @@ model = keras.models.Sequential()
 model.add(keras.layers.Dense(1024, input_shape=(features, ),
                                   activation="relu"))
 model.add(keras.layers.Dropout(0.5))
-model.add(keras.layers.Dense(528, activation="relu"))
+model.add(keras.layers.Dense(512, activation="relu"))
+model.add(keras.layers.Dropout(0.5))
+model.add(keras.layers.Dense(512, activation="relu"))
 model.add(keras.layers.Dropout(0.5))
 model.add(keras.layers.Dense(2, activation="softmax"))
 
 model.compile(loss="categorical_crossentropy",
-              optimizer=keras.optimizers.SGD(lr=1e-3),
+              optimizer=keras.optimizers.RMSprop(),
               metrics=["accuracy"])
 
 os.environ["CUDA_VISIBLE_DEVICES"] = "1"
 model.fit(train_X, train_Y,
-          batch_size=64,
-          epochs=128,
+          batch_size=32,
+          epochs=30,
           verbose=1)
 
 model.save('deep_model/deep.h5')
